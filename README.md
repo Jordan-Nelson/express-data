@@ -14,6 +14,7 @@ npm install express-stats
 ```
 
 ## Sample use
+The most basic use of the library can be seen below. By setting verbose to true, each stat will log to the console when created. The function call, req.expressStats.record('mock-db-call'), will create an event with the name 'mock-db-call' and record the start time. The function call, req.expressStats.stop('mock-db-call'), will record the end time, and calculate the time elapsed for the event.
 
 ```
 var express = require('express');
@@ -24,7 +25,6 @@ var app = express();
 var newExpressStats = new expressStats({verbose: true});
 
 app.use((req, res, next) => newExpressStats.interceptor(req, res, next));
-
 
 app.get('/', function(req, res, next) {
     req.expressStats.record('mock-db-call');
@@ -38,3 +38,19 @@ app.listen(8080, function() {
     console.log('Now listening on port 8080!')
 });
 ```
+
+The following output is a sample console output from the app.
+```
+Now listening on port 8080!
+mock-db-call: (59.594539ms)
+mock-db-call: (56.262868ms)
+```
+
+## API
+
+.record(event_name: string)
+
+.stop(event_name: string)
+
+.end()
+
