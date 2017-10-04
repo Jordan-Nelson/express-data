@@ -1,0 +1,21 @@
+{
+  "name": "express-stats",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "pack": "tsc && npm pack"
+  },
+  "author": "Jordan Nelson",
+  "license": "ISC",
+  "dependencies": {
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^3.4.2",
+    "typescript": "^2.5.3"
+  }
+}
