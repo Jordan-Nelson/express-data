@@ -16,7 +16,7 @@ npm install express-stats
 ### Basic Use
 A basic use of the library can be seen below. By setting verbose to true, each stat will log to the console when the event is marked complete with the stop() method. The method call, req.expressStats.record('event-name'), will create an event with the name 'event-name' and record the start time. The method call, req.expressStats.stop('event-name'), will record the end time, and calculate the time elapsed for the event.
 
-```
+```javascript
 var express = require('express');
 var expressStats = require('express-stats');
 
