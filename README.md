@@ -52,9 +52,10 @@ var expressStats = require('express-stats');
 
 var app = express();
 
+// This function will execute each time the endRequest method is called
 var onEndRequest = function(req) {
     var data = req.expressStats.getData();
-    // SAVE Data to Database, log data, etc.
+    // This function can be used to acheive recording data in a database, logging the data, sending it to web server, etc.
 }
 
 var newExpressStats = new expressStats({onEndRequest: onEndRequest});
