@@ -4,7 +4,7 @@ interface Events {
     [key: string]: any;
 }
 
-module.exports =  class ExpressStats {
+module.exports =  class ExpressData {
 
     verbose: boolean;
     onEndRequest: any;
@@ -70,7 +70,7 @@ module.exports =  class ExpressStats {
 
         let getData = () => events;
 
-        req.expressStats = {
+        req.expressData = {
             record,
             stop,
             endRequest,
