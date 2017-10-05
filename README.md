@@ -1,10 +1,10 @@
 # express-data
-A simple express middleware library for recording statistics for your express server. 
+A simple express middleware library for recording data from an express server. 
 
 ## Features
-- Record stats (mehtod, url, uuid, time elapsed, etc.) for a request
-- Record stats (time elapsed, etc.) for specific tasks within a request (e.g. database query, read from cache, call to external API)
-- Execute a callback function when the request is completed to perform actions such as logging stats, or writing the stats to a database.
+- Record data (mehtod, url, uuid, time elapsed, etc.) for a request
+- Record data (time elapsed, etc.) for specific tasks within a request (e.g. database query, read from cache, call to external API)
+- Execute a callback function when the request is completed to perform actions such as logging data, or writing the data to a database.
 - Verbose mode to allow for debugging and creating quick examples and testing
 
 ## Install
@@ -18,7 +18,7 @@ A basic use of the library can be seen below. By setting verbose to true, each s
 
 ```javascript
 var express = require('express');
-var expressData = require('express-stats');
+var expressData = require('express-data');
 
 var app = express();
 
@@ -45,10 +45,10 @@ event-name: (56.262868ms)
 ```
 
 ### Sample Use with Callback
-By adding an onEndRequest parameter to the config object, the data can be record in a database, recorded in a log, etc.
+By adding an onEndRequest parameter to the config object, the data can be recorded in a database, recorded in a log etc.
 ```javascript
 var express = require('express');
-var expressData = require('express-stats');
+var expressData = require('express-data');
 
 var app = express();
 
@@ -67,8 +67,8 @@ app.get('/', function(req, res, next) {
     setTimeout(function() {
         res.send('hello world!');
         req.expressData.stop('event-name');
+        req.expressData.endRequest();
     }, 50)
-    req.expressData.endRequest('event-name');
 })
 
 app.listen(8080, function() {
@@ -80,7 +80,7 @@ app.listen(8080, function() {
 
 ### expressData(config)
 #### Description
-Express stats contructor.
+Express data contructor.
 #### Arguments
 | Argument                           | Type          | Desciption                                                           |
 |:---------------------------------- |:------------- |:-------------------------------------------------------------------- |
@@ -89,11 +89,14 @@ Express stats contructor.
 | config.onEndRequest(req) (optional)| function      | A callback function to be called each time that req.expressData.endRequest() is called.|
 #### Sample
 ```javascript
-app.get('/', function(req, res, next) {
-    req.expressData.record('event-name');
-    // EVENT (Read from file system, cache, db, etc.)
-    req.expressData.stop('event-name');
-})
+var expressData = require('express-data');
+var expressDataConfig = {
+    verbose: true,
+    onEndRequest: function(req) {
+        console.log(req.expressData.getData());
+    }
+}
+var newExpressData = new expressData(expressDataConfig);
 ```
 
 ### record(): req.expressData.record(name)

@@ -1,6 +1,6 @@
 {
   "name": "express-data",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
@@ -11,6 +11,10 @@
   },
   "author": "Jordan Nelson",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jrnelson333/express-data.git"
+  },
   "dependencies": {
     "uuid": "^3.1.0"
   },
