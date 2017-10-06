@@ -24,7 +24,9 @@ var app = express();
 
 var newExpressData = new expressData({verbose: true});
 
-app.use((req, res, next) => newExpressData.interceptor(req, res, next));
+app.use(function(req, res, next) {
+    return newExpressData.interceptor(req, res, next)
+})
 
 app.get('/', function(req, res, next) {
     req.expressData.record('event-name');
@@ -60,7 +62,9 @@ var onEndRequest = function(req) {
 
 var newExpressData = new expressData({onEndRequest: onEndRequest});
 
-app.use((req, res, next) => newExpressData.interceptor(req, res, next));
+app.use(function(req, res, next) {
+    return newExpressData.interceptor(req, res, next)
+})
 
 app.get('/', function(req, res, next) {
     req.expressData.record('event-name');
