@@ -14,7 +14,7 @@ npm install express-data
 
 ## Sample Use
 ### Basic Use
-A basic use of the library can be seen below. By setting verbose to true, each stat will log to the console when the event is marked complete with the stop() method. The method call, req.expressData.record('event-name'), will create an event with the name 'event-name' and record the start time. The method call, req.expressData.stop('event-name'), will record the end time, and calculate the time elapsed for the event.
+A simple use of the library can be seen below. For each request, express-data will create an object to record a UUID, the URL, method, and the time elapsed for the request. The 'onEndRequest' config property is used to perform actions such as saving this data to a database. In the example below, it is simply logged to the console
 
 ```javascript
 var express = require('express');
@@ -22,42 +22,9 @@ var expressData = require('express-data');
 
 var app = express();
 
-var newExpressData = new expressData({verbose: true});
-
-app.use(function(req, res, next) {
-    return newExpressData.interceptor(req, res, next)
-})
-
-app.get('/', function(req, res, next) {
-    req.expressData.record('event-name');
-    // EVENT (Read from file system, cache, db, etc.)
-    req.expressData.stop('event-name');
-})
-
-app.listen(8080, function() {
-    console.log('Now listening on port 8080!')
-});
-```
-
-The following output is a sample console output from the app.
-```
-Now listening on port 8080!
-event-name: (59.594539ms)
-event-name: (56.262868ms)
-```
-
-### Sample Use with Callback
-By adding an onEndRequest parameter to the config object, the data can be recorded in a database, recorded in a log etc.
-```javascript
-var express = require('express');
-var expressData = require('express-data');
-
-var app = express();
-
-// This function will execute each time the endRequest method is called
 var onEndRequest = function(req) {
     var data = req.expressData.getData();
-    // This function can be used to acheive recording data in a database, logging the data, sending it to web server, etc.
+    console.log(data); // data can be saved to db, written to log, etc.
 }
 
 var newExpressData = new expressData({onEndRequest: onEndRequest});
@@ -67,17 +34,73 @@ app.use(function(req, res, next) {
 })
 
 app.get('/', function(req, res, next) {
-    req.expressData.record('event-name');
-    setTimeout(function() {
-        res.send('hello world!');
-        req.expressData.stop('event-name');
-        req.expressData.endRequest();
-    }, 50)
+    res.send('hello world!');
 })
 
 app.listen(8080, function() {
     console.log('Now listening on port 8080!')
 });
+```
+
+Below is sample data object returned from the 'getData' method.
+```javascript
+{ 
+    uuid: '611ebefd-333c-4e60-89c1-ebfefef8f1e5',   // UUID for the request
+    url: '/',                                       // url for the route (equal to req.url)
+    method: 'GET',                                  // method for the route (equal to req.method)
+    startTime: [ 799091, 60135903 ],                // High Resolution start time [seconds, nanoseconds]
+    stopTime: [ 799091, 60620821 ],                 // High Resolution end time [seconds, nanoseconds]
+    timeElapsed: 0.48491799999999996                // The time elapsed for the request in milliseconds 
+}
+```
+
+### Recording Custom Events
+By default, the time elapsed is only recorded for the entire length of the request. Recording the time elapsed for specific events within the request is simple though. Below is an example of how to use the methods 'record' and 'stop' to record the time elapsed for custom events. The example below uses the node module 'sleep' to demonstrate a lapse in time.
+```javascript
+var express = require('express');
+var expressData = require('express-data');
+var sleep = require('sleep')
+
+var app = express();
+
+var onEndRequest = function (req) {
+    var data = req.expressData.getData();
+    console.log(data); // data can be saved to db, written to log, etc.
+}
+
+var newExpressData = new expressData({ onEndRequest: onEndRequest });
+
+app.use(function (req, res, next) {
+    return newExpressData.interceptor(req, res, next)
+})
+
+app.get('/', function (req, res, next) {
+    req.expressData.record('sub-process');
+    sleep.msleep(50);
+    req.expressData.stop('sub-process');
+    sleep.msleep(10);
+    res.send('Hello World!')
+})
+
+app.listen(8080, function () {
+    console.log('Now listening on port 8080!')
+});
+```
+Below is sample data object returned from the 'getData' method.
+```javascript
+{ 
+    uuid: 'c3ed3a53-19ca-4a28-9606-162e1cc655b3',
+    url: '/',
+    method: 'GET',
+    startTime: [ 801560, 512820399 ],
+    stopTime: [ 801560, 581876264 ],
+    timeElapsed: 65.055865,
+    'sub-process': {                        // The name of the event
+        startTime: [ 801560, 513196912 ],   // High Resolution start time [seconds, nanoseconds]
+        stopTime: [ 801560, 565268404 ],    // High Resolution end time [seconds, nanoseconds]
+        timeElapsed: 52.071492              // The time elapsed for the event in milliseconds 
+    }
+}
 ```
 
 ## API
@@ -137,14 +160,15 @@ app.get('/', function(req, res, next) {
 
 ### endRequest(): req.expressData.endRequest()
 #### Description
-Used to indicate that the request has finished. Sets req.stopTime to the current time, and computes the req.timeElapsed.
+Used to override the default logic used to detect when requests are complete. This indicates that the request has finished and sets req.stopTime to the current time, and computes the req.timeElapsed.
+
+NOTE: This method is called when automatically when a response is sent to the user. The following methods will cause this method to trigger: res.send(), res.sendFile(), res.sendStatus(), res.render(), res.json(), res.jsonp(), and res.end().
 #### Arguments
 None
 #### Sample
 ```javascript
 app.get('/', function(req, res, next) {
     // Read from file system, cache, db, etc.
-    res.send();
     req.expressData.end();
 })
 ```
@@ -158,16 +182,12 @@ None
 an object with the following properties
 ```javascript
 { 
-    uuid: '37e17a13-2860-44bf-b0e9-86d71d8beae7',
-    url: '/',
-    method: 'GET',
-    startTime: [ 752567, 649034259 ],
-    'event-name-1':
-    { 
-        startTime: [ 752567, 649381159 ],
-        stopTime: [ 752567, 706358528 ],
-        timeElapsed: 56.977368999999996 
-    } 
+    uuid: '611ebefd-333c-4e60-89c1-ebfefef8f1e5',   // UUID for the request
+    url: '/',                                       // url for the route (equal to req.url)
+    method: 'GET',                                  // method for the route (equal to req.method)
+    startTime: [ 799091, 60135903 ],                // High Resolution start time [seconds, nanoseconds]
+    stopTime: [ 799091, 60620821 ],                 // High Resolution end time [seconds, nanoseconds]
+    timeElapsed: 0.48491799999999996                // The time elapsed for the request in milliseconds 
 }
 ```
 #### Sample
